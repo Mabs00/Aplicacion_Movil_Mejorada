@@ -1,19 +1,25 @@
-# 🪪 Login
-
-Aplicación de **login simple** desarrollada con **React Native** y **Expo**, que utiliza **Context API** para la gestión de autenticación.  
-
-La aplicación presenta una pantalla de inicio de sesión con validación de correo electrónico y contraseña, y muestra mensajes de error apropiados.  
-Una vez que el usuario inicia sesión correctamente, se navega a una **pantalla de bienvenida**, con opción de ir a la **pantalla de perfil**, donde se muestra el correo electrónico del usuario y se ofrece la posibilidad de **cerrar sesión**.
+### Evaluación 2: Aplicación Móvil de Tareas Persistentes 
+Aplicación móvil desarrollada con React Native y Expo (TypeScript), diseñada para gestionar tareas de forma contextual, demostrando la correcta implementación de la gestión de estado global, navegación y persistencia de datos.
 
 ---
 
-## ⚙️ Características
+## ⚙️ Características Implementadas
+Creación y Contextualización: Permite crear nuevas tareas que incluyen:
 
-- Pantalla de inicio de sesión con campos para **correo electrónico** y **contraseña**.  
-- Validación de formato de correo electrónico.  
-- Manejo de errores para credenciales incorrectas.  
-- Uso de **Context API** para gestionar el estado de autenticación.  
-- Navegación entre pantallas utilizando **React Navigation**.
+Título.
+
+Fotografía (Base64).
+
+Localización GPS (Coordenadas de creación).
+
+Gestión CRUD: Las tareas pueden ser Eliminadas y Marcadas como completadas/no completadas (toggleTask).
+
+Aislamiento de Datos: Las tareas están asociadas a un userId y se filtran para ser visibles únicamente por el usuario logueado.
+
+💾 Persistencia y Gestión de Estado
+Persistencia Local: Se utiliza el Context API para la gestión global del estado, el cual se sincroniza de forma persistente con AsyncStorage.
+
+Navegación: Uso obligatorio de Expo Router para la navegación entre el Login y las pestañas principales.
 
 ---
 
@@ -25,11 +31,25 @@ Una vez que el usuario inicia sesión correctamente, se navega a una **pantalla 
 | `usuario.dos@gmail.com` |   `5678`   |
 
 ---
+El siguiente apartado explica la decisión técnica tomada para la persistencia de las imágenes, vital para la comprensión del entregable:
 
-## 📘 Aprendizajes
+📸 Persistencia Multimedia (Base64):
 
-Me guié por [reactjs.wiki](https://www.reactjs.wiki/) para aprender sobre el uso de **useEffect**, **useState** y **Context**. , y con **Vibecoding** para manejar estilos en la app.
+Se implementó la codificación Base64 para almacenar la fotografía directamente dentro del objeto Task en AsyncStorage (como una cadena de texto).
 
+Esta decisión se tomó para mitigar un error persistente de entorno (TypeError: Cannot read property 'documentDirectory' of undefined) que impedía la correcta carga del módulo expo-file-system en el dispositivo de desarrollo, asegurando así la funcionalidad y la persistencia local de la imagen tal como lo exige la evaluación.
 ---
+
+## ¿QUIERES VER CÓMO FUNCIONA?
+Aquí está el enlace al video demostrativo que cubre el flujo completo (Login, Creación de Tarea, Persistencia, Toggle y Delete):
+
+https://youtube.com/shorts/DgjNSXkxMd8
+
+## 📘 Aprendizajes Clave
+Nos guiamos con reactjs.wiki para aprender sobre el uso avanzado de useEffect, useState y Context, y con Vibecoding para manejar estilos en la app.
+
+
+
+
 
 
