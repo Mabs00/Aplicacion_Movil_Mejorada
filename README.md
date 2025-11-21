@@ -38,7 +38,6 @@ El siguiente apartado explica la decisión técnica tomada para la persistencia 
 Se implementó la codificación Base64 para almacenar la fotografía directamente dentro del objeto Task en AsyncStorage (como una cadena de texto).
 
 Esta decisión se tomó para mitigar un error persistente de entorno (TypeError: Cannot read property 'documentDirectory' of undefined) que impedía la correcta carga del módulo expo-file-system en el dispositivo de desarrollo, asegurando así la funcionalidad y la persistencia local de la imagen tal como lo exige la evaluación.
----
 La IA fue utilizada como una herramienta de apoyo clave para la solución de problemas técnicos complejos, la optimización del código y la implementación de funcionalidades específicas.
 
 Refactorización y Optimización de Código: Asistencia en la refactorización de la gestión de estado (useState local a Context API) y la implementación de useCallback y useMemo en TasksContext.tsx para mejorar la estabilidad y eficiencia del rendimiento.
