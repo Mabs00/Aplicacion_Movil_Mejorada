@@ -1,30 +1,35 @@
-import { clearSessionFromStorage, loadSessionFromStorage, saveSessionToStorage } from "@/utils/storage";
-import { useRouter } from "expo-router";
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import getAuthService from "@/services/auth-service";
+import {clearSessionFromStorage, loadSessionFromStorage, saveSessionToStorage} from "@/utils/storage";
+import {useRouter} from "expo-router";
+import {decodeJwt} from 'jose';
+import {createContext, ReactNode, useContext, useEffect, useState} from "react";
+import {Alert} from "react-native";
 
 interface AuthContextProps {
 	user: User | null;
 	login: (email: string, password: string) => void;
 	logout: () => void;
+	loading: boolean;
 }
 
 export interface User {
 	id: string
 	email: string;
-	password: string;
+	token: string;
 }
 
-const EXPECTED_USERS = [
-	{ id: '1', email: 'usuario.uno@gmail.com', password: '1234' },
-	{ id: '2', email: 'usuario.dos@gmail.com', password: '5678' },
-]
+export interface JwtPayload {
+	sub: string;
+	email: string;
+}
 
 export const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export const AuthProvider = ({children}: {children: ReactNode}) => {
 
 	const emailRegex = /^[^@]+@[^@]+\.[a-zA-Z]{2,}$/;
 	const [user, setUser] = useState<User | null>(null);
+	const [loading, setLoading] = useState<boolean>(false);
 	const router = useRouter();
 
 
@@ -42,7 +47,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 		}
 	}, [user, router]);
 
-	const login = (email: string, password: string) => {
+	const login = async (email: string, password: string) => {
+		const authClient = getAuthService();
+		setLoading(true);
+
+		try {
+			const loginResponse = await authClient.login({email, password});
+			const token = loginResponse.data.token;
+			const decodedToken = decodeJwt<JwtPayload>(token);
+
+			const loggedInUser: User = {
+				id: decodedToken.sub,
+				email: decodedToken.email,
+				token
+			};
+			setUser(loggedInUser);
+			await saveSessionToStorage(loggedInUser);
+
+		} catch (error) {
+			Alert.alert('Error de Login', (error as Error).message);
+		} finally {
+			setLoading(false);
+		}
 
 		if (!email || !password) {
 			throw new Error('Email y contraseña son obligatorios');
@@ -51,15 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 		if (!emailRegex.test(email)) {
 			throw new Error('El formato del email no es válido');
 		}
-		const foundUser = EXPECTED_USERS.find(
-			(user) => user.email === email && user.password === password
-		);
-		if (foundUser) {
-			setUser(foundUser);
-			saveSessionToStorage(foundUser);
-		} else {
-			throw new Error('Credenciales inválidas');
-		}
+
 	};
 
 	const logout = () => {
@@ -68,7 +86,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 	};
 
 	return (
-		<AuthContext.Provider value={{ user, login, logout }}>
+		<AuthContext.Provider value={{user, login, logout, loading}}>
 			{children}
 		</AuthContext.Provider>
 	);

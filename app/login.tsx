@@ -1,14 +1,15 @@
-import { useAuth } from "@/context/auth-context";
-import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { COLORS } from "../constants/colors";
+import {useAuth} from "@/context/auth-context";
+import {useEffect, useState} from "react";
+import {Pressable, StyleSheet, Text, TextInput, View} from "react-native";
+import {SafeAreaView} from "react-native-safe-area-context";
+import {COLORS} from "../constants/colors";
+import Spinner from "./components/spinner";
 
 const LoginBackground = require("../assets/svg/login-background.svg").default;
 
 
 export default function LoginView() {
-  const { login } = useAuth();
+  const {login, loading} = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +44,7 @@ export default function LoginView() {
 
   return (
     <SafeAreaView style={styles.container}>
-
+      <Spinner loading={loading} />
       <View style={styles.backgroundContainer}>
         <LoginBackground width="100%" height="100%" preserveAspectRatio="xMinYMin slice" />
       </View>
@@ -71,7 +72,7 @@ export default function LoginView() {
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
         </View>
 
-        <Pressable style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]} onPress={handleLogin}>
+        <Pressable style={({pressed}) => [styles.button, pressed && styles.buttonPressed]} disabled={loading || !email || !password} onPress={handleLogin}>
           <Text style={styles.buttonText}>Iniciar sesión</Text>
         </Pressable>
 
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   buttonPressed: {
-    transform: [{ scale: 0.90 }],
+    transform: [{scale: 0.90}],
     opacity: 0.8
   },
   errorText: {
