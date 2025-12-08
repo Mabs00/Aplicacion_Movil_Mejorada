@@ -1,20 +1,18 @@
-import React, {
+import { Task } from '@/constants/types';
+import {
     createContext,
     ReactNode,
     useCallback,
-    useContext,
     useEffect,
     useMemo,
     useState
 } from 'react';
-// Asegúrate de que esta ruta sea correcta para encontrar el archivo de tipos
-import { Task } from '@/constants/types';
-// 🚨 RUTA CRUCIAL: Necesita la notación '../' porque storage está fuera de la carpeta 'context'
-import { loadTasksFromStorage, saveTasksToStorage } from '../utils/storage';
-// Importamos el hook de autenticación que está en la misma carpeta
 import { useAuth } from './auth-context';
+// 🚨 Importar la URL base de la API
+import { API_BASE_URL } from '@/constants/api';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Todavía necesario para obtener el user_id
 
-// 1. Definir el Tipo del Contexto
+// --- TIPOS ---
 interface TasksContextType {
     tasks: Task[];
     loading: boolean;
@@ -25,75 +23,127 @@ interface TasksContextType {
 
 const TasksContext = createContext<TasksContextType | undefined>(undefined);
 
-// 2. Componente Proveedor (Provider)
+// --- PROVEEDOR ---
 export const TasksProvider = ({ children }: { children: ReactNode }) => {
-    // Estado que contiene TODAS las tareas (de todos los usuarios)
     const [allTasks, setAllTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
-    const { user } = useAuth(); // Obtenemos el usuario autenticado
+    const { user } = useAuth();
 
-    // --- EFECTO 1: Cargar tareas al iniciar (LOAD) ---
-    useEffect(() => {
-        const fetchTasks = async () => {
-            try {
-                const storedTasks = await loadTasksFromStorage();
-                setAllTasks(storedTasks);
-            } catch (e) {
-                console.error("Error cargando tareas iniciales:", e);
-            } finally {
-                setLoading(false);
+    // --- FUNCIONALIDAD DE LECTURA (GET) DESDE LA API ---
+    const loadTasksFromAPI = useCallback(async () => {
+        setLoading(true);
+        try {
+            // Obtenemos el ID del usuario, que es la clave para la API
+            const userId = user?.id || await AsyncStorage.getItem('user_id');
+
+            if (!userId) {
+                setAllTasks([]);
+                return;
             }
-        };
-        fetchTasks();
-    }, []);
 
-    // --- EFECTO 2: Guardar tareas cada vez que cambia allTasks (SAVE) ---
-    // Este efecto garantiza la persistencia en AsyncStorage
-    useEffect(() => {
-        // Solo guardamos si ya terminamos de cargar
-        if (!loading) {
-            saveTasksToStorage(allTasks);
+            // 🎯 Llamada a la API con filtro de userId
+            const response = await fetch(`${API_BASE_URL}/tasks?userId=${userId}`);
+
+            if (!response.ok) {
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+
+            const apiTasks: Task[] = await response.json();
+            setAllTasks(apiTasks);
+
+        } catch (error) {
+            console.error("Fallo al obtener tareas de la API:", error);
+        } finally {
+            setLoading(false);
         }
-    }, [allTasks, loading]);
+    }, [user]); // Se ejecuta al inicio, y si el objeto user cambia (ej. al loguearse)
 
-    // --- FUNCIONES CRUD (usando useCallback para evitar el error de useMemo) ---
+    // --- EFECTO 1: Cargar tareas al iniciar y al cambiar de usuario ---
+    useEffect(() => {
+        // Reemplazamos la lógica de AsyncStorage con la llamada a la API
+        loadTasksFromAPI();
+    }, [loadTasksFromAPI]); // Depende de la función de carga (que es estable)
 
-    // 🚨 Función para agregar una nueva tarea
-    const addTask = useCallback((task: Task) => {
-        setAllTasks((prevTasks) => [...prevTasks, task]);
-    }, []); // Dependencias vacías: solo se crea una vez
 
-    // 🚨 Función para eliminar una tarea
-    const deleteTask = useCallback((taskId: string) => {
-        setAllTasks((prevTasks) => prevTasks.filter(task => task.id !== taskId));
+
+    // Función para agregar una nueva tarea (MODIFICADA CON POST A LA API)
+    const addTask = useCallback(async (task: Task) => {
+        try {
+            // 1. Prepara la solicitud POST
+            const response = await fetch(`${API_BASE_URL}/tasks`, {
+                method: 'POST', // Método para crear recursos
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                // 2. Envía la tarea como JSON
+                body: JSON.stringify(task),
+            });
+
+            if (!response.ok) {
+                // Si la API falla, lanzamos un error y no modificamos el estado local
+                throw new Error(`Fallo en el POST: ${response.statusText}`);
+            }
+
+            // 3. Opcional: Obtener la tarea devuelta por la API (con ID asignado)
+            // La API de Hono generalmente devuelve el objeto creado
+            const newTaskFromAPI: Task = await response.json();
+
+            // 4. Actualizar estado local (SOLO si la API fue exitosa)
+            setAllTasks((prevTasks) => [...prevTasks, newTaskFromAPI]);
+
+        } catch (error) {
+            console.error("Fallo al crear la tarea en la API:", error);
+            // Aquí podrías mostrar una alerta al usuario indicando el fallo
+        }
+    }, []); // Dependencias vacías: esta función es estable
+
+    // En context/TasksContext.tsx (dentro del TasksProvider)
+
+    //  Función para eliminar una tarea (MODIFICADA CON DELETE A LA API)
+    const deleteTask = useCallback(async (taskId: string) => {
+        try {
+            // 1. Enviar la solicitud DELETE con el ID de la tarea
+            const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
+                method: 'DELETE', // Método para eliminar recursos
+            });
+
+            if (!response.ok) {
+                // Si la API falla, lanzamos un error
+                throw new Error(`Fallo en el DELETE: ${response.statusText}`);
+            }
+
+            // 2. Actualizar estado local (SOLO si la API fue exitosa)
+            setAllTasks((prevTasks) => prevTasks.filter(task => task.id !== taskId));
+
+        } catch (error) {
+            console.error("Fallo al eliminar la tarea en la API:", error);
+            // Mostrar una alerta de fallo al usuario
+        }
     }, []); // Dependencias vacías
 
-    // 🚨 Función para alternar el estado (completado/no completado)
+    //  Función para alternar el estado (completado/no completado)
     const toggleTask = useCallback((taskId: string) => {
         setAllTasks((prevTasks) =>
             prevTasks.map(task =>
                 task.id === taskId ? { ...task, completed: !task.completed } : task
             )
         );
-    }, []); // Dependencias vacías
+    }, []);
 
-    // 3. Filtrar Tareas: Solo las del usuario logueado (useMemo para eficiencia)
+    // 3. Filtrar Tareas (Sin cambios)
     const userTasks = useMemo(() => {
-        // Si no hay usuario, devuelve un array vacío
         if (!user) return [];
-        // Filtra todas las tareas por el ID del usuario actual
         return allTasks.filter(task => task.userId === user.id);
-    }, [allTasks, user]); // Se recalcula solo si cambian TODAS las tareas o el USUARIO.
+    }, [allTasks, user]);
 
 
     const contextValue = useMemo(() => ({
-        tasks: userTasks, // Exponemos la lista FILTRADA
+        tasks: userTasks,
         loading,
         addTask,
         deleteTask,
         toggleTask,
-        // Depende de userTasks (la lista filtrada) y loading. Las funciones son estables.
-    }), [userTasks, loading]);
+    }), [userTasks, loading, addTask, deleteTask, toggleTask]);
 
     return (
         <TasksContext.Provider value={contextValue}>
@@ -102,11 +152,7 @@ export const TasksProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
-// 4. Hook personalizado para usar el contexto (useTasks)
+// ... (El hook useTasks no cambia)
 export const useTasks = () => {
-    const context = useContext(TasksContext);
-    if (!context) {
-        throw new Error('useTasks debe ser usado dentro de un TasksProvider');
-    }
-    return context;
+    // ...
 };

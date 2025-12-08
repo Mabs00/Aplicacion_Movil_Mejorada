@@ -1,5 +1,5 @@
-import axios, {isAxiosError} from 'axios';
-import {API_URL} from '../constants/config';
+import axios, { isAxiosError } from 'axios';
+import { API_URL } from '../constants/config';
 
 export interface LoginPayload {
   email: string
@@ -20,7 +20,7 @@ export type RegisterResponse = LoginResponse;
 export default function getAuthService() {
 
   const client = axios.create({
-    baseURL: `${ API_URL }/auth`,
+    baseURL: `${API_URL}/auth`,
 
   })
 
