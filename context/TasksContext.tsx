@@ -1,16 +1,17 @@
-import { Task } from '@/constants/types';
+import {Task} from '@/constants/types';
 import {
     createContext,
     ReactNode,
     useCallback,
+    useContext,
     useEffect,
     useMemo,
     useState
 } from 'react';
-import { useAuth } from './auth-context';
+import {useAuth} from './auth-context';
 // 🚨 Importar la URL base de la API
-import { API_BASE_URL } from '@/constants/api';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Todavía necesario para obtener el user_id
+import getTodoService from '@/services/todo-service';
+import {Alert} from 'react-native';
 
 // --- TIPOS ---
 interface TasksContextType {
@@ -24,126 +25,98 @@ interface TasksContextType {
 const TasksContext = createContext<TasksContextType | undefined>(undefined);
 
 // --- PROVEEDOR ---
-export const TasksProvider = ({ children }: { children: ReactNode }) => {
+export const TasksProvider = ({children}: {children: ReactNode}) => {
     const [allTasks, setAllTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
-    const { user } = useAuth();
+    const {user} = useAuth();
 
-    // --- FUNCIONALIDAD DE LECTURA (GET) DESDE LA API ---
-    const loadTasksFromAPI = useCallback(async () => {
+    const todoService = useMemo(() => {
+        if (!user) return null;
+        return getTodoService({token: user.token});
+    }, [user]);
+
+    const fetchTodos = useCallback(async () => {
+        if (!user || !todoService) return;
         setLoading(true);
         try {
-            // Obtenemos el ID del usuario, que es la clave para la API
-            const userId = user?.id || await AsyncStorage.getItem('user_id');
-
-            if (!userId) {
-                setAllTasks([]);
-                return;
+            const todoService = getTodoService({token: user.token});
+            const response = await todoService.getAllTodos();
+            if (response.success) {
+                setAllTasks(response.data);
+            } else {
+                console.error("Error al cargar las tareas desde la API");
             }
-
-            // 🎯 Llamada a la API con filtro de userId
-            const response = await fetch(`${API_BASE_URL}/tasks?userId=${userId}`);
-
-            if (!response.ok) {
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
-            }
-
-            const apiTasks: Task[] = await response.json();
-            setAllTasks(apiTasks);
-
         } catch (error) {
-            console.error("Fallo al obtener tareas de la API:", error);
+            console.error("Fallo al obtener las tareas de la API:", error);
         } finally {
             setLoading(false);
         }
-    }, [user]); // Se ejecuta al inicio, y si el objeto user cambia (ej. al loguearse)
+    }, [user]);
 
     // --- EFECTO 1: Cargar tareas al iniciar y al cambiar de usuario ---
     useEffect(() => {
-        // Reemplazamos la lógica de AsyncStorage con la llamada a la API
-        loadTasksFromAPI();
-    }, [loadTasksFromAPI]); // Depende de la función de carga (que es estable)
-
-
-
-    // Función para agregar una nueva tarea (MODIFICADA CON POST A LA API)
-    const addTask = useCallback(async (task: Task) => {
-        try {
-            // 1. Prepara la solicitud POST
-            const response = await fetch(`${API_BASE_URL}/tasks`, {
-                method: 'POST', // Método para crear recursos
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                // 2. Envía la tarea como JSON
-                body: JSON.stringify(task),
-            });
-
-            if (!response.ok) {
-                // Si la API falla, lanzamos un error y no modificamos el estado local
-                throw new Error(`Fallo en el POST: ${response.statusText}`);
-            }
-
-            // 3. Opcional: Obtener la tarea devuelta por la API (con ID asignado)
-            // La API de Hono generalmente devuelve el objeto creado
-            const newTaskFromAPI: Task = await response.json();
-
-            // 4. Actualizar estado local (SOLO si la API fue exitosa)
-            setAllTasks((prevTasks) => [...prevTasks, newTaskFromAPI]);
-
-        } catch (error) {
-            console.error("Fallo al crear la tarea en la API:", error);
-            // Aquí podrías mostrar una alerta al usuario indicando el fallo
+        if (user) {
+            fetchTodos();
         }
-    }, []); // Dependencias vacías: esta función es estable
+    }, [user, fetchTodos]); // Depende de la función de carga (que es estable)
 
-    // En context/TasksContext.tsx (dentro del TasksProvider)
-
-    //  Función para eliminar una tarea (MODIFICADA CON DELETE A LA API)
-    const deleteTask = useCallback(async (taskId: string) => {
+    const addTask = async (task: Task) => {
+        setLoading(true);
         try {
-            // 1. Enviar la solicitud DELETE con el ID de la tarea
-            const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
-                method: 'DELETE', // Método para eliminar recursos
-            });
-
-            if (!response.ok) {
-                // Si la API falla, lanzamos un error
-                throw new Error(`Fallo en el DELETE: ${response.statusText}`);
-            }
-
-            // 2. Actualizar estado local (SOLO si la API fue exitosa)
-            setAllTasks((prevTasks) => prevTasks.filter(task => task.id !== taskId));
-
+            const todoService = getTodoService({token: user!.token});
+            await todoService.createTodo(task);
+            await fetchTodos();
         } catch (error) {
-            console.error("Fallo al eliminar la tarea en la API:", error);
-            // Mostrar una alerta de fallo al usuario
+            Alert.alert("Fallo al agregar la tarea a la API:");
+        } finally {
+            setLoading(false);
         }
-    }, []); // Dependencias vacías
+    }
+
+    //  Función para eliminar una tarea
+    const deleteTask = async (taskId: string) => {
+        setLoading(true);
+        try {
+            const todoService = getTodoService({token: user!.token});
+            await todoService.deleteTodo(taskId);
+            await fetchTodos();
+        } catch (error) {
+            Alert.alert("Fallo al eliminar la tarea");
+        }
+        setLoading(false);
+
+    }
 
     //  Función para alternar el estado (completado/no completado)
-    const toggleTask = useCallback((taskId: string) => {
+    const toggleTask = async (taskId: string) => {
+        setLoading(true);
         setAllTasks((prevTasks) =>
             prevTasks.map(task =>
-                task.id === taskId ? { ...task, completed: !task.completed } : task
+                task.id === taskId ? {...task, completed: !task.completed} : task
             )
         );
-    }, []);
 
-    // 3. Filtrar Tareas (Sin cambios)
-    const userTasks = useMemo(() => {
-        if (!user) return [];
-        return allTasks.filter(task => task.userId === user.id);
-    }, [allTasks, user]);
+        const updatedTask = allTasks.find(task => task.id === taskId);
+        if (todoService && updatedTask) {
+            const toggledTask = {...updatedTask, completed: !updatedTask.completed};
+            try {
+                await todoService.updateTodo(toggledTask);
+                await fetchTodos();
+            } catch (error) {
+                Alert.alert("Fallo al actualizar el estado de la tarea");
+            }
+        }
+        setLoading(false);
+    };
 
 
     const contextValue = useMemo(() => ({
-        tasks: userTasks,
+        tasks: allTasks,
         loading,
         addTask,
         deleteTask,
         toggleTask,
-    }), [userTasks, loading, addTask, deleteTask, toggleTask]);
+    }), [allTasks, loading, addTask, deleteTask, toggleTask]);
 
     return (
         <TasksContext.Provider value={contextValue}>
@@ -152,7 +125,10 @@ export const TasksProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
-// ... (El hook useTasks no cambia)
 export const useTasks = () => {
-    // ...
+    const context = useContext(TasksContext);
+    if (!context) {
+        throw new Error('useTasks debe usarse dentro de un TasksProvider');
+    }
+    return context;
 };

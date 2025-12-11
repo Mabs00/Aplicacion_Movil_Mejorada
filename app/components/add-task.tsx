@@ -1,34 +1,34 @@
-import { COLORS } from '@/constants/colors';
-import { LocationData, Task } from '@/constants/types';
-import { useAuth } from '@/context/auth-context';
+import {COLORS} from '@/constants/colors';
+import {LocationData, Task} from '@/constants/types';
+import {useAuth} from '@/context/auth-context';
 // 🚨 Importamos el hook para la persistencia global (AsyncStorage)
-import { useTasks } from '@/context/TasksContext';
+import {useTasks} from '@/context/TasksContext';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import { useState } from 'react';
-import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {useState} from 'react';
+import {Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import uuid from 'react-native-uuid';
 
 interface AddTaskProps {
   onClose: () => void;
 }
 
-export default function AddTaskView({ onClose }: AddTaskProps) {
+export default function AddTaskView({onClose}: AddTaskProps) {
 
   // 🚨 OBTENEMOS LA FUNCIÓN DE GUARDADO GLOBAL
-  const { addTask } = useTasks();
+  const {addTask} = useTasks();
 
   // 1. ESTADOS
   const [title, setTitle] = useState('');
   const [photoUri, setPhotoUri] = useState<string | null>(null); // Contendrá la cadena Base64
   const [location, setLocation] = useState<LocationData | null>(null);
-  const { user } = useAuth();
+  const {user} = useAuth();
 
   // --- LÓGICA DE CÁMARA (BASE64) ---
   const handleTakePhoto = async () => {
     // 1. Pedir permiso
-    const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+    const {status: cameraStatus} = await ImagePicker.requestCameraPermissionsAsync();
     if (cameraStatus !== 'granted') {
       Alert.alert('Permiso Requerido', 'Necesitamos permiso de la cámara para tomar fotos.');
       return;
@@ -45,7 +45,7 @@ export default function AddTaskView({ onClose }: AddTaskProps) {
     // 3. Guardar la cadena Base64 para previsualización
     if (!result.canceled && result.assets && result.assets.length > 0) {
       // Se añade el prefijo 'data:' para que el componente <Image> lo interprete
-      const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
+      const base64Image = `data:image/jpeg;base64,${ result.assets[0].base64 }`;
       setPhotoUri(base64Image);
     }
   };
@@ -53,7 +53,7 @@ export default function AddTaskView({ onClose }: AddTaskProps) {
   // --- LÓGICA DE LOCALIZACIÓN ---
   const getCurrentLocation = async (): Promise<LocationData | null> => {
     // 1. Pedir permiso
-    const { status } = await Location.requestForegroundPermissionsAsync();
+    const {status} = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Localización Requerida', 'Se requiere acceso a la localización.');
       return null;
@@ -102,9 +102,7 @@ export default function AddTaskView({ onClose }: AddTaskProps) {
         createdAt: Date.now(),
       };
 
-      // 🚨 LLAMADA FINAL: Envía la tarea al contexto (guarda en AsyncStorage)
       addTask(newTodo);
-
       // 4. Limpiar y cerrar
       setTitle('');
       setPhotoUri(null);
@@ -120,7 +118,6 @@ export default function AddTaskView({ onClose }: AddTaskProps) {
   // --- RENDERIZADO (RETURN) ---
   return (
     <View style={styles.container}>
-
       <Text style={styles.title}>Agregar Nueva Tarea</Text>
 
       <TextInput
@@ -134,7 +131,7 @@ export default function AddTaskView({ onClose }: AddTaskProps) {
       <View style={styles.photoBox}>
         {photoUri ? (
           <Image
-            source={{ uri: photoUri }}
+            source={{uri: photoUri}}
             style={styles.photoPreview}
           />
         ) : (

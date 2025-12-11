@@ -1,9 +1,10 @@
-import { COLORS } from "@/constants/colors";
+import {COLORS} from "@/constants/colors";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native"; // Asegúrate de importar ActivityIndicator
-import { useTasks } from '../../context/TasksContext';
+import {useState} from "react";
+import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native"; // Asegúrate de importar ActivityIndicator
+import {useTasks} from '../../context/TasksContext';
 import AddTaskView from "../components/add-task";
+import Spinner from "../components/spinner";
 import TaskItem from "../components/task-item";
 
 export default function TodoView() {
@@ -18,19 +19,10 @@ export default function TodoView() {
   // El estado local solo maneja la visibilidad del formulario
   const [creatingNew, setCreatingNew] = useState<boolean>(false);
 
-  if (loading) {
-    return (
-      <View style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color={COLORS.primaryAction} />
-        <Text style={{ marginTop: 10 }}>Cargando tareas...</Text>
-      </View>
-    );
-  }
-
   if (creatingNew) {
     return (
       <View style={styles.container}>
-        {/* AddTaskView ya no necesita onAddTask, ya que usa el hook useTasks */}
+        <Spinner loading={loading} />
         <AddTaskView onClose={() => setCreatingNew(false)} />
       </View>
     )
@@ -38,6 +30,7 @@ export default function TodoView() {
 
   return (
     <View style={styles.container}>
+      <Spinner loading={loading} />
       <Text style={styles.title}>Mis Tareas</Text>
       <ScrollView>
         {/*  array 'tasks' del contexto */}
@@ -88,5 +81,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  // ... (El resto de tus estilos: input, btnAddTask, etc.)
 });
