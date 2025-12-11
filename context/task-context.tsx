@@ -1,4 +1,5 @@
 import {Task} from '@/constants/types';
+import getTodoService from '@/services/todo-service';
 import {
     createContext,
     ReactNode,
@@ -8,10 +9,8 @@ import {
     useMemo,
     useState
 } from 'react';
-import {useAuth} from './auth-context';
-// 🚨 Importar la URL base de la API
-import getTodoService from '@/services/todo-service';
 import {Alert} from 'react-native';
+import {useAuth} from './auth-context';
 
 // --- TIPOS ---
 interface TasksContextType {
@@ -44,10 +43,10 @@ export const TasksProvider = ({children}: {children: ReactNode}) => {
             if (response.success) {
                 setAllTasks(response.data);
             } else {
-                console.error("Error al cargar las tareas desde la API");
+                Alert.alert("Error al cargar las tareas desde la API");
             }
         } catch (error) {
-            console.error("Fallo al obtener las tareas de la API:", error);
+            Alert.alert(`Fallo al obtener las tareas de la API: ${ error }`);
         } finally {
             setLoading(false);
         }
@@ -81,7 +80,7 @@ export const TasksProvider = ({children}: {children: ReactNode}) => {
             await todoService.deleteTodo(taskId);
             await fetchTodos();
         } catch (error) {
-            Alert.alert("Fallo al eliminar la tarea");
+            Alert.alert(`Fallo al eliminar la tarea: ${ error } `);
         }
         setLoading(false);
 
@@ -103,7 +102,7 @@ export const TasksProvider = ({children}: {children: ReactNode}) => {
                 await todoService.updateTodo(toggledTask);
                 await fetchTodos();
             } catch (error) {
-                Alert.alert("Fallo al actualizar el estado de la tarea");
+                Alert.alert(`Fallo al actualizar el estado de la tarea: ${ error } `);
             }
         }
         setLoading(false);

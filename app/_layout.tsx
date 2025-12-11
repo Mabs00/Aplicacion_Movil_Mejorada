@@ -1,9 +1,9 @@
-import { useFonts } from "expo-font";
-import { SplashScreen, Stack } from "expo-router";
-import { useEffect } from "react";
-import { AuthProvider } from "../context/auth-context";
+import {useFonts} from "expo-font";
+import {SplashScreen, Stack} from "expo-router";
+import {useEffect} from "react";
+import {AuthProvider} from "../context/auth-context";
 // Importamos el TasksProvider
-import { TasksProvider } from "../context/TasksContext";
+import {TasksProvider} from "../context/task-context";
 
 export const unstable_settings = {
   anchor: 'login',
@@ -34,8 +34,8 @@ export default function RootLayout() {
       { }
       <TasksProvider>
         <Stack>
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="login" options={{headerShown: false}} />
+          <Stack.Screen name="(tabs)" options={{headerShown: false}} />
         </Stack>
       </TasksProvider>
     </AuthProvider>

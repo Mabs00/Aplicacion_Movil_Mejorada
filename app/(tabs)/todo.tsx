@@ -2,7 +2,7 @@ import {COLORS} from "@/constants/colors";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import {useState} from "react";
 import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native"; // Asegúrate de importar ActivityIndicator
-import {useTasks} from '../../context/TasksContext';
+import {useTasks} from '../../context/task-context';
 import AddTaskView from "../components/add-task";
 import Spinner from "../components/spinner";
 import TaskItem from "../components/task-item";

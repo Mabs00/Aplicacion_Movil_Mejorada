@@ -8,6 +8,16 @@ export interface GetTodosResponse {
   count: number;
 }
 
+function handlerServiceError(error: unknown): never {
+  if (isAxiosError(error) && error.response) {
+    if (error.response.status === 401) {
+      throw new Error('Unauthorized: Por favor, inicia sesión de nuevo.');
+    }
+  }
+  throw new Error('Error al conectarse con el servidor. Por favor intente mas tarde');
+};
+
+
 export default function getTodoService({token}: {token: string}) {
   const client = axios.create({
     baseURL: API_URL,
@@ -22,12 +32,7 @@ export default function getTodoService({token}: {token: string}) {
       const response = await client.get<GetTodosResponse>('/todos');
       return response.data;
     } catch (error) {
-      if (isAxiosError(error) && error.response) {
-        if (error.response.status === 401) {
-          throw new Error('Unauthorized: Por favor, inicia sesión de nuevo.');
-        }
-      }
-      throw new Error('Error al obtener las tareas');
+      handlerServiceError(error);
     }
   }
 
@@ -35,12 +40,7 @@ export default function getTodoService({token}: {token: string}) {
     try {
       await client.post('/todos', task);
     } catch (error) {
-      if (isAxiosError(error) && error.response) {
-        if (error.response.status === 401) {
-          throw new Error('Unauthorized: Por favor, inicia sesión de nuevo.');
-        }
-      }
-      throw new Error('Error al crear la tarea');
+      handlerServiceError(error);
     }
   }
 
@@ -48,12 +48,7 @@ export default function getTodoService({token}: {token: string}) {
     try {
       await client.delete(`/todos/${ taskId }`);
     } catch (error) {
-      if (isAxiosError(error) && error.response) {
-        if (error.response.status === 401) {
-          throw new Error('Unauthorized: Por favor, inicia sesión de nuevo.');
-        }
-      }
-      throw new Error('Error al eliminar la tarea');
+      handlerServiceError(error);
     }
   }
 
@@ -61,15 +56,9 @@ export default function getTodoService({token}: {token: string}) {
     try {
       await client.put(`/todos/${ task.id }`, task);
     } catch (error) {
-      if (isAxiosError(error) && error.response) {
-        if (error.response.status === 401) {
-          throw new Error('Unauthorized: Por favor, inicia sesión de nuevo.');
-        }
-      }
-      throw new Error('Error al actualizar la tarea');
+      handlerServiceError(error);
     }
   }
-
   return {
     getAllTodos,
     createTodo,

@@ -1,8 +1,7 @@
 import {COLORS} from '@/constants/colors';
 import {LocationData, Task} from '@/constants/types';
 import {useAuth} from '@/context/auth-context';
-// 🚨 Importamos el hook para la persistencia global (AsyncStorage)
-import {useTasks} from '@/context/TasksContext';
+import {useTasks} from '@/context/task-context';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
@@ -160,7 +159,6 @@ export default function AddTaskView({onClose}: AddTaskProps) {
   );
 }
 
-// --- ESTILOS --- (SIN MODIFICACIONES)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
