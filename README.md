@@ -1,4 +1,4 @@
-### Evaluación 2: Aplicación Móvil de Tareas Persistentes
+### Evaluación 3: Aplicación Móvil de Tareas Persistentes
 
 Aplicación móvil **fullstack** desarrollada con React Native y Expo (TypeScript), conectada a un backend mediante una API REST. Permite gestionar tareas de forma contextual, demostrando la correcta implementación de la gestión de estado global, navegación, persistencia de datos y comunicación con un servidor remoto.
 
@@ -63,7 +63,7 @@ Depuración de Entorno: Asistencia en la identificación y resolución del error
 
 ## ¿QUIERES VER CÓMO FUNCIONA?
 
-A continuación, el video demostrativo que cubre el flujo completo (Login, Creación de Tarea, Persistencia, Toggle y Delete):
+A continuación, el video demostrativo que cubre el flujo completo:
 
 [Ver video de demostración](https://youtu.be/yStypf5fBT4)
 
