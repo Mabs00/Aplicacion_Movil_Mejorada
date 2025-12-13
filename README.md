@@ -39,7 +39,7 @@ Navegación: Uso obligatorio de Expo Router para la navegación entre el Login y
 
 | Email                       | Contraseña        |
 | --------------------------- | ----------------- |
-| `email": "user@example.com` | `password123`     |
+| `email": user@example.com` | `password123`     |
 
 ---
 
