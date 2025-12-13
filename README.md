@@ -1,9 +1,21 @@
-### Evaluación 2: Aplicación Móvil de Tareas Persistentes 
-Aplicación móvil desarrollada con React Native y Expo (TypeScript), diseñada para gestionar tareas de forma contextual, demostrando la correcta implementación de la gestión de estado global, navegación y persistencia de datos.
+### Evaluación 2: Aplicación Móvil de Tareas Persistentes
+
+Aplicación móvil **fullstack** desarrollada con React Native y Expo (TypeScript), conectada a un backend mediante una API REST. Permite gestionar tareas de forma contextual, demostrando la correcta implementación de la gestión de estado global, navegación, persistencia de datos y comunicación con un servidor remoto.
+
+---
+
+## 🌐 Conexión Backend
+
+La aplicación se conecta a un backend a través de la siguiente API:
+
+**API Backend:** [https://todo-list.dobleb.cl](https://todo-list.dobleb.cl)
+
+Esto permite la autenticación de usuarios, la gestión de tareas en tiempo real y la sincronización de datos entre el cliente y el servidor.
 
 ---
 
 ## ⚙️ Características Implementadas
+
 Creación y Contextualización: Permite crear nuevas tareas que incluyen:
 
 Título.
@@ -23,14 +35,14 @@ Navegación: Uso obligatorio de Expo Router para la navegación entre el Login y
 
 ---
 
-## 👤 Usuarios de prueba
+## 👤 Usuario de prueba
 
-| Email                   | Contraseña |
-|-------------------------|------------|
-| `usuario.uno@gmail.com` |   `1234`   |
-| `usuario.dos@gmail.com` |   `5678`   |
+| Email                       | Contraseña        |
+| --------------------------- | ----------------- |
+| `email": "user@example.com` | `password123`     |
 
 ---
+
 El siguiente apartado explica la decisión técnica tomada para la persistencia de las imágenes, vital para la comprensión del entregable:
 
 📸 Persistencia Multimedia (Base64):
@@ -42,24 +54,18 @@ La IA fue utilizada como una herramienta de apoyo clave para la solución de pro
 
 Refactorización y Optimización de Código: Asistencia en la refactorización de la gestión de estado (useState local a Context API) y la implementación de useCallback y useMemo en TasksContext.tsx para mejorar la estabilidad y eficiencia del rendimiento.
 
-Implementación de Requisitos Técnicos: Ayuda en la integración de librerías nativas como expo-location y expo-image-picker (Base64), asegurando la correcta solicitud de permisos y el manejo de objetos tipados (TypeScript). 
+Implementación de Requisitos Técnicos: Ayuda en la integración de librerías nativas como expo-location y expo-image-picker (Base64), asegurando la correcta solicitud de permisos y el manejo de objetos tipados (TypeScript).
 
-Depuración de Entorno: Asistencia en la identificación y resolución del error persistente de entorno (documentDirectory of undefined) mediante el diágnotisco de logs y la aplicación  de soluciones epecíficas de limpieza de caché (npm install, npx expo start --clear) para garantizar la estabilidad del proyecto.
-
-
+Depuración de Entorno: Asistencia en la identificación y resolución del error persistente de entorno (documentDirectory of undefined) mediante el diágnotisco de logs y la aplicación de soluciones epecíficas de limpieza de caché (npm install, npx expo start --clear) para garantizar la estabilidad del proyecto.
 
 ---
 
 ## ¿QUIERES VER CÓMO FUNCIONA?
-Aquí está el enlace al video demostrativo que cubre el flujo completo (Login, Creación de Tarea, Persistencia, Toggle y Delete):
 
-https://youtube.com/shorts/DgjNSXkxMd8
+A continuación, el video demostrativo que cubre el flujo completo (Login, Creación de Tarea, Persistencia, Toggle y Delete):
+
+[Ver video de demostración](https://youtu.be/yStypf5fBT4)
 
 ## 📘 Aprendizajes Clave
+
 Nos guiamos con reactjs.wiki para aprender sobre el uso avanzado de useEffect, useState y Context, y con Vibecoding para manejar estilos en la app.
-
-
-
-
-
-
