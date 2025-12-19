@@ -48,6 +48,15 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
 	}, [user, router]);
 
 	const login = async (email: string, password: string) => {
+
+		if (!email || !password) {
+			throw new Error('Email y contraseña son obligatorios');
+		}
+
+		if (!emailRegex.test(email)) {
+			throw new Error('El formato del email no es válido');
+		}
+
 		const authClient = getAuthService();
 		setLoading(true);
 
@@ -68,14 +77,6 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
 			Alert.alert('Error de Login', (error as Error).message);
 		} finally {
 			setLoading(false);
-		}
-
-		if (!email || !password) {
-			throw new Error('Email y contraseña son obligatorios');
-		}
-
-		if (!emailRegex.test(email)) {
-			throw new Error('El formato del email no es válido');
 		}
 
 	};
