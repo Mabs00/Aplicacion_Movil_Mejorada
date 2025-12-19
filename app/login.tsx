@@ -1,46 +1,23 @@
-import {useAuth} from "@/context/auth-context";
-import {useEffect, useState} from "react";
 import {Pressable, StyleSheet, Text, TextInput, View} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {COLORS} from "../constants/colors";
 import Spinner from "./components/spinner";
+import {useLogin} from "./hooks/use-login";
 
 const LoginBackground = require("../assets/svg/login-background.svg").default;
 
 
 export default function LoginView() {
-  const {login, loading} = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
 
-  const handleEmailChange = (text: string) => {
-    setEmail(text);
-  }
-
-  const handlePasswordChange = (text: string) => {
-    setPassword(text);
-  }
-
-  const handleLogin = () => {
-
-    try {
-      login(email, password);
-      setError(null);
-    } catch (error) {
-      setError((error as Error).message);
-    }
-  }
-
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => {
-        setError(null);
-      }, 3_000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
+  const {
+    loading,
+    email,
+    password,
+    error,
+    handleEmailChange,
+    handlePasswordChange,
+    handleLogin
+  } = useLogin();
 
   return (
     <SafeAreaView style={styles.container}>
