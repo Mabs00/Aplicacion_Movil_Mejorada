@@ -1,5 +1,6 @@
 import {Task} from '@/constants/types';
 import getTodoService from '@/services/todo-service';
+import {useRouter} from 'expo-router';
 import {
     createContext,
     ReactNode,
@@ -27,7 +28,8 @@ const TasksContext = createContext<TasksContextType | undefined>(undefined);
 export const TasksProvider = ({children}: {children: ReactNode}) => {
     const [allTasks, setAllTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
-    const {user} = useAuth();
+    const {user, logout} = useAuth();
+    const router = useRouter();
 
     const todoService = useMemo(() => {
         if (!user) return null;
@@ -40,17 +42,19 @@ export const TasksProvider = ({children}: {children: ReactNode}) => {
         try {
             const todoService = getTodoService({token: user.token});
             const response = await todoService.getAllTodos();
-            if (response.success) {
-                setAllTasks(response.data);
-            } else {
-                Alert.alert("Error al cargar las tareas desde la API");
-            }
+            setAllTasks(response.data);
         } catch (error) {
-            Alert.alert(`Fallo al obtener las tareas de la API: ${ error }`);
+            if (error instanceof Error && error.message.includes('Unauthorized')) {
+                Alert.alert('Sesión expirada', 'Por favor, inicia sesión de nuevo.');
+                logout();
+                router.replace('/login');
+            } else {
+                Alert.alert(`Fallo al obtener las tareas de la API: ${ error }`);
+            }
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, todoService, logout, router]);
 
     // --- EFECTO 1: Cargar tareas al iniciar y al cambiar de usuario ---
     useEffect(() => {
