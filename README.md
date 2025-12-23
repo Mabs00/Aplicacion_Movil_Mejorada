@@ -65,7 +65,7 @@ Depuración de Entorno: Asistencia en la identificación y resolución del error
 
 A continuación, el video demostrativo que cubre el flujo completo:
 
-[Ver video de demostración](https://youtu.be/yStypf5fBT4)
+[Ver video de demostración](https://www.youtube.com/watch?v=aZHDxD5kk5k)
 
 ## 📘 Aprendizajes Clave
 
